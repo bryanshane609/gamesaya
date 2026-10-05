@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real Guitar Studio & Rhythm Hero - Simulasi Gitar Akustik & Elektrik Fisika Nyata</title>
+  <meta name="description" content="Game gitar realistis dengan sintesis suara fisik nyata (Karplus-Strong), resonansi bodi kayu akustik, fretboard interaktif, dan mode Rhythm Hero.">
+  
+  <!-- Google Fonts: Outfit & Space Grotesk -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Ambient Glow Background -->
+  <div class="ambient-glow top-left"></div>
+  <div class="ambient-glow bottom-right"></div>
+
+  <!-- Header & Navigasi -->
+  <header class="app-header">
+    <div class="logo-area">
+      <div class="guitar-icon-badge">🎸</div>
+      <div class="logo-text">
+        <h1>REAL GUITAR <span class="highlight">STUDIO</span></h1>
+        <p class="tagline">Simulasi Fisik Akustik & Elektrik &bull; Karplus-Strong Audio Engine</p>
+      </div>
+    </div>
+
+    <!-- Mode Selector Tabs -->
+    <nav class="game-modes-nav" aria-label="Mode Permainan">
+      <button class="game-mode-tab active" data-mode="free" id="tab-mode-free">
+        <span class="tab-icon">🎼</span>
+        <span class="tab-text">Gitar Bebas (Studio)</span>
+      </button>
+      <button class="game-mode-tab" data-mode="rhythm" id="tab-mode-rhythm">
+        <span class="tab-icon">⚡</span>
+        <span class="tab-text">Rhythm Hero</span>
+      </button>
+      <button class="game-mode-tab" data-mode="chord_challenge" id="tab-mode-chord">
+        <span class="tab-icon">🎯</span>
+        <span class="tab-text">Tantangan Kunci</span>
+      </button>
+      <button class="game-mode-tab" data-mode="ear_train" id="tab-mode-ear">
+        <span class="tab-icon">👂</span>
+        <span class="tab-text">Tebak Nada</span>
+      </button>
+    </nav>
+
+    <!-- Sound & Master Controls -->
+    <div class="header-controls">
+      <div class="guitar-type-wrapper">
+        <label for="guitar-type-select" class="control-label">Karakter Gitar:</label>
+        <select id="guitar-type-select" class="styled-select">
+          <option value="acoustic-steel">🎸 Akustik Dreadnought (Steel)</option>
+          <option value="nylon">🎼 Spanyol Klasik (Nylon)</option>
+          <option value="electric-clean">⚡ Elektrik Clean (Vintage Amp)</option>
+          <option value="electric-rock">🔥 Elektrik Rock (Overdrive)</option>
+        </select>
+      </div>
+
+      <div class="quick-action-btns">
+        <button id="btn-mute-strings" class="btn-secondary" title="Redam Semua Senar (M)">
+          <span>🔇 Redam (M)</span>
+        </button>
+        <button id="btn-help-toggle" class="btn-icon" title="Panduan Tombol Keyboard">
+          <span>❓</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-container">
+
+    <!-- SECTION: RHYTHM HIGHWAY (Mode Rhythm Hero) -->
+    <section id="rhythm-highway-section" class="game-section rhythm-section" style="display: none;">
+      <!-- Song Selection & Control Bar -->
+      <div class="rhythm-top-bar glass-panel">
+        <div class="song-selector-group">
+          <label for="rhythm-song-select">Pilih Lagu:</label>
+          <select id="rhythm-song-select" class="styled-select"></select>
+          <div class="song-badge-info">
+            <span id="song-info-title" class="song-title-text">Sweet Child O' Mine</span>
+            <span id="song-info-diff" class="diff-badge diff-sedang">Sedang</span>
+          </div>
+          <p id="song-info-desc" class="song-description-text"></p>
+        </div>
+
+        <div class="rhythm-playback-btns">
+          <button id="btn-start-song" class="btn-primary">▶ Mulai Main</button>
+          <button id="btn-stop-song" class="btn-danger">⏹ Berhenti</button>
+        </div>
+      </div>
+
+      <!-- Rhythm HUD (Score, Combo, Rock Meter) -->
+      <div class="rhythm-hud glass-panel">
+        <div class="hud-item">
+          <span class="hud-label">SKOR</span>
+          <span id="rhythm-score" class="hud-value hud-score">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">COMBO</span>
+          <span id="rhythm-combo" class="hud-value hud-combo">0</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">MULTIPLIER</span>
+          <span id="rhythm-multiplier" class="hud-value hud-multiplier">x1</span>
+        </div>
+        <div class="hud-item rock-meter-container">
+          <span class="hud-label">ROCK METER</span>
+          <div class="rock-meter-track">
+            <div id="rock-meter-fill" class="rock-meter-bar" style="width: 60%;"></div>
+          </div>
+        </div>
+        <div id="judgement-display" class="judgement-popup"></div>
+      </div>
+
+      <!-- Highway Canvas Container -->
+      <div class="rhythm-highway-wrapper">
+        <canvas id="rhythm-highway-canvas"></canvas>
+      </div>
+    </section>
+
+    <!-- SECTION: CHORD CHALLENGE (Mode Tantangan Kunci) -->
+    <section id="chord-challenge-section" class="game-section chord-challenge-section" style="display: none;">
+      <div class="challenge-card glass-panel">
+        <h2>🎯 TANTANGAN PINDAH KUNCI CEPAT</h2>
+        <p>Genjreng kunci gitar berikut secepat mungkin saat namanya muncul!</p>
+        
+        <div class="target-chord-display">
+          <span class="target-subtext">MAINKAN KUNCI:</span>
+          <h1 id="challenge-target-chord" class="target-chord-name">C</h1>
+        </div>
+
+        <div class="challenge-score-board">
+          <span>Skor Tantangan: <strong id="challenge-score">0</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: EAR TRAINER (Mode Tebak Nada) -->
+    <section id="ear-train-section" class="game-section ear-train-section" style="display: none;">
+      <div class="ear-card glass-panel">
+        <h2>👂 LATIH PENDENGARAN MUSIKAL</h2>
+        <p>Dengarkan petikan senar gitar berikut, lalu tebak nada apa yang berbunyi!</p>
+        
+        <button id="btn-replay-ear-note" class="btn-primary replay-btn">
+          🔊 Putar Ulang Nada
+        </button>
+
+        <div id="ear-options-container" class="ear-options-grid"></div>
+
+        <div class="ear-score-board">
+          <span>Skor Tebakan: <strong id="ear-train-score">0</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: AUDIO VISUALIZER & PEDALBOARD FX -->
+    <section class="pedalboard-section glass-panel">
+      <!-- Oscilloscope / Visualizer -->
+      <div class="visualizer-container">
+        <div class="panel-header">
+          <span class="panel-title">LIVE ACOUSTIC WAVEFORM (OSCILLOSCOPE)</span>
+          <span id="active-chord-name" class="active-note-badge">Gitar Siap Dimainkan</span>
+        </div>
+        <canvas id="audio-visualizer-canvas" width="600" height="90"></canvas>
+      </div>
+
+      <!-- Efek Pedal Knobs -->
+      <div class="effects-knobs-panel">
+        <div class="knob-group">
+          <label for="effect-reverb">Resonansi Badan (Reverb)</label>
+          <input type="range" id="effect-reverb" min="0" max="0.8" step="0.02" value="0.35" class="slider-input">
+        </div>
+        <div class="knob-group">
+          <label for="effect-drive">Distorsi / Drive Tabung</label>
+          <input type="range" id="effect-drive" min="0" max="0.9" step="0.02" value="0.0" class="slider-input">
+        </div>
+        <div class="knob-group">
+          <label for="effect-tone">Tone (Kecerahan Senar)</label>
+          <input type="range" id="effect-tone" min="0" max="1" step="0.02" value="0.75" class="slider-input">
+        </div>
+        <div class="knob-group">
+          <label for="master-volume">Volume Master</label>
+          <input type="range" id="master-volume" min="0" max="1" step="0.02" value="0.85" class="slider-input">
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION: THE GUITAR (Fretboard, Strings & Strum Zone) -->
+    <section id="fretboard-container-wrapper" class="guitar-instrument-section">
+      
+      <!-- Fretboard Header Info -->
+      <div class="guitar-neck-toolbar">
+        <div class="neck-title">
+          <span class="wood-grain-icon">🪵</span>
+          <span>LEHER GITAR (ROSEWOOD FRETBOARD)</span>
+        </div>
+        <div class="fret-instructions">
+          <span>Klik fret untuk menaruh jari &bull; Atau gunakan tombol Chord di bawah &bull; Petik dengan mouse/keyboard</span>
+        </div>
+      </div>
+
+      <!-- Fretboard & Strum Zone Flex Layout -->
+      <div class="guitar-body-chassis">
+
+        <!-- Headstock & Nut -->
+        <div class="guitar-headstock">
+          <div class="peg-row"><span class="peg"></span><span class="peg"></span><span class="peg"></span></div>
+          <div class="headstock-body">
+            <span class="brand-inlay">CUSTOM</span>
+          </div>
+          <div class="peg-row"><span class="peg"></span><span class="peg"></span><span class="peg"></span></div>
+        </div>
+
+        <!-- Fretboard Grid with String Physics Canvas Layer -->
+        <div class="fretboard-scroll-area">
+          <div class="fretboard-container" id="fretboard-container">
+            <!-- Diisi dinamis oleh guitar-ui.js -->
+          </div>
+          <!-- Canvas getaran senar gelombang berdiri (Standing waves) -->
+          <canvas id="strings-physics-canvas" class="physics-canvas"></canvas>
+        </div>
+
+        <!-- Soundhole & Strum Zone (Area Petikan & Genjrengan) -->
+        <div class="guitar-strum-zone-container">
+          <div class="soundhole-rim">
+            <div class="soundhole-inner">
+              <span class="soundhole-label">STRUM ZONE</span>
+            </div>
+          </div>
+
+          <!-- Strumming & Plucking Wire Area -->
+          <div id="strum-pad" class="strum-pad" title="Geser mouse ke atas/bawah untuk menggenjreng, atau klik senar langsung!">
+            <!-- Diisi dinamis oleh guitar-ui.js -->
+          </div>
+
+          <!-- Quick Strum Stroke Action Buttons -->
+          <div class="strum-actions">
+            <button id="btn-strum-down" class="btn-strum" title="Genjreng Bawah (Downstroke)">
+              ⬇ Genjreng Bawah (Space)
+            </button>
+            <button id="btn-strum-up" class="btn-strum" title="Genjreng Atas (Upstroke)">
+              ⬆ Genjreng Atas
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SECTION: CHORD PRESETS (KUNCI GITAR CEPAT) -->
+    <section class="chord-presets-section glass-panel">
+      <div class="chord-section-header">
+        <h3>CHORD CEPAT (KLIK ATAU TEKAN ANGKA 1 - 0)</h3>
+        <span class="chord-help-text">Memilih kunci otomatis memasang jari pada fretboard!</span>
+      </div>
+      <div id="chord-pads-list" class="chord-pads-grid">
+        <!-- Diisi dinamis oleh guitar-ui.js -->
+      </div>
+    </section>
+
+    <!-- SECTION: KEYBOARD CONTROLS GUIDE DRAWER / MODAL -->
+    <div id="help-modal" class="modal-overlay">
+      <div class="modal-card glass-panel">
+        <div class="modal-header">
+          <h2>🎸 Panduan Kontrol & Pintasan Keyboard</h2>
+          <button id="btn-close-help" class="btn-icon">&times;</button>
+        </div>
+        <div class="modal-body help-grid">
+          <div class="help-box">
+            <h4>Memilih Kunci Gitar (Chords)</h4>
+            <ul>
+              <li><kbd>1</kbd> s.d <kbd>9</kbd> & <kbd>0</kbd> : Memilih chord C, G, Am, Em, F, D, Dm, E, A, Bm</li>
+              <li><kbd>Spacebar</kbd> : Genjreng (Strum) kunci gitar yang sedang dipilih</li>
+            </ul>
+          </div>
+          <div class="help-box">
+            <h4>Memetik Senar Terbuka / Fret Aktif</h4>
+            <ul>
+              <li><kbd>Z</kbd> : Petik Senar 6 (E2 Rendah)</li>
+              <li><kbd>X</kbd> : Petik Senar 5 (A2)</li>
+              <li><kbd>C</kbd> : Petik Senar 4 (D3)</li>
+              <li><kbd>V</kbd> : Petik Senar 3 (G3)</li>
+              <li><kbd>B</kbd> : Petik Senar 2 (B3)</li>
+              <li><kbd>N</kbd> : Petik Senar 1 (E4 Tinggi)</li>
+              <li><kbd>M</kbd> : Mute / Redam semua senar seketika</li>
+            </ul>
+          </div>
+          <div class="help-box">
+            <h4>Mode Rhythm Hero (Guitar Hero)</h4>
+            <ul>
+              <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd>, <kbd>4</kbd>, <kbd>5</kbd>, <kbd>6</kbd> atau <kbd>A</kbd>, <kbd>S</kbd>, <kbd>D</kbd>, <kbd>J</kbd>, <kbd>K</kbd>, <kbd>L</kbd> untuk memukul not yang meluncur tepat di garis target!</li>
+            </ul>
+          </div>
+          <div class="help-box">
+            <h4>Petikan Mouse & Sentuhan Layar</h4>
+            <ul>
+              <li>Geser mouse naik/turun di area <strong>STRUM ZONE</strong> untuk menghasilkan suara gesekan genjrengan senar realistis (kecepatan sapuan mempengaruhi kekuatan petikan).</li>
+              <li>Klik fret mana saja pada leher gitar untuk memasang jari atau memainkan melodi solo!</li>
+            </ul>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-dismiss-help" class="btn-primary">Saya Mengerti, Ayo Bermain!</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL VICTORY / HASIL LAGU -->
+    <div id="rhythm-victory-modal" class="modal-overlay">
+      <div class="modal-card victory-card glass-panel">
+        <div class="victory-header">
+          <span class="victory-trophy">🏆</span>
+          <h2>LAGU SELESAI!</h2>
+        </div>
+        <div class="rank-display">
+          <span class="rank-label">PERINGKAT</span>
+          <div id="victory-rank" class="rank-letter">S</div>
+        </div>
+        <div class="victory-stats-grid">
+          <div class="stat-cell">
+            <span class="stat-label">TOTAL SKOR</span>
+            <span id="victory-score" class="stat-val">128,500</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">AKURASI</span>
+            <span id="victory-accuracy" class="stat-val">98%</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">MAX COMBO</span>
+            <span id="victory-max-combo" class="stat-val">42</span>
+          </div>
+          <div class="stat-cell">
+            <span class="stat-label">PERFECT HITS</span>
+            <span id="victory-perfect-count" class="stat-val">38</span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="btn-victory-retry" class="btn-primary">Main Lagi ↺</button>
+          <button id="btn-victory-close" class="btn-secondary">Tutup</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>Real Guitar Studio &copy; 2026 &bull; Ditenagai oleh Web Audio API Karplus-Strong Physical Synthesis</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="audio-engine.js"></script>
+  <script src="songs.js"></script>
+  <script src="guitar-ui.js"></script>
+  <script src="rhythm-game.js"></script>
+  <script>
+    // Inisialisasi Aplikasi Saat Halaman Selesai Dimuat
+    document.addEventListener('DOMContentLoaded', () => {
+      // Inisialisasi Gitar UI
+      window.guitarUI = new RealisticGuitarUI(window.guitarAudio);
+      guitarUI.init();
+
+      // Inisialisasi Rhythm Engine
+      window.rhythmGame = new RhythmGameEngine(window.guitarAudio, window.guitarUI);
+      rhythmGame.init();
+
+      // Modal Bantuan
+      const helpModal = document.getElementById('help-modal');
+      const helpBtn = document.getElementById('btn-help-toggle');
+      const closeHelpBtn = document.getElementById('btn-close-help');
+      const dismissHelpBtn = document.getElementById('btn-dismiss-help');
+
+      const toggleHelp = (show) => {
+        if (helpModal) helpModal.classList.toggle('show', show);
+      };
+
+      if (helpBtn) helpBtn.addEventListener('click', () => toggleHelp(true));
+      if (closeHelpBtn) closeHelpBtn.addEventListener('click', () => toggleHelp(false));
+      if (dismissHelpBtn) dismissHelpBtn.addEventListener('click', () => toggleHelp(false));
+
+      // Modal Victory
+      const victoryCloseBtn = document.getElementById('btn-victory-close');
+      const victoryRetryBtn = document.getElementById('btn-victory-retry');
+      const victoryModal = document.getElementById('rhythm-victory-modal');
+
+      if (victoryCloseBtn) {
+        victoryCloseBtn.addEventListener('click', () => {
+          if (victoryModal) victoryModal.classList.remove('show');
+        });
+      }
+
+      if (victoryRetryBtn) {
+        victoryRetryBtn.addEventListener('click', () => {
+          if (victoryModal) victoryModal.classList.remove('show');
+          const select = document.getElementById('rhythm-song-select');
+          if (select) rhythmGame.startSong(select.value);
+        });
+      }
+
+      // Replay Ear Training Note Button
+      const earReplayBtn = document.getElementById('btn-replay-ear-note');
+      if (earReplayBtn) {
+        earReplayBtn.addEventListener('click', () => {
+          rhythmGame.playEarTrainPrompt();
+        });
+      }
+
+      // Otomatis bangunkan AudioContext saat interaksi pertama
+      const unlockAudio = () => {
+        guitarAudio.init();
+        window.removeEventListener('click', unlockAudio);
+        window.removeEventListener('keydown', unlockAudio);
+        window.removeEventListener('touchstart', unlockAudio);
+      };
+      window.addEventListener('click', unlockAudio);
+      window.addEventListener('keydown', unlockAudio);
+      window.addEventListener('touchstart', unlockAudio);
+    });
+  </script>
+</body>
+</html>
